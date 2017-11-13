@@ -230,11 +230,11 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 	/**
 	 * Right edge of the screen
 	 */
-	public static final int RIGHT_EDGE = 1260; //ROWBOTTOM - changed from 700// also arena panel width
+	public static final int RIGHT_EDGE = 700; //ROWBOTTOM - changed from 700// also arena panel width
 	/**
 	 * Bottom edge of the screen
 	 */
-	public static final int BOTTOM_EDGE = 896; //ROWBOTTOM - changed from 500// arena panel height is this constant + TEXT_BUFFER
+	public static final int BOTTOM_EDGE = 500; //ROWBOTTOM - changed from 500// arena panel height is this constant + TEXT_BUFFER
 	/**
 	 * Left edge of the screen
 	 */
@@ -293,7 +293,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 	 * Total number of Bots in round 1 (if you have fewer than this, the rest of the spots
 	 * in the array will be filled with Drones, RandBots, and Sentries).
 	 */
-	public static final int 	NUM_BOTS = 25;//ROWBOTTOM NOV 6 2017 Changed to 25
+	public static final int 	NUM_BOTS =16;//BROOKS NOV 12 2017 Changed to 16
 	/**
 	 * Number of bullets on screen at once for each bot
 	 */
@@ -618,18 +618,18 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 		{
 			if (bots[i] == null)
 			{
-				//bots[i] = new DumbBot();
-				//if (c%i==1)
-					bots[i] = new Drone();
-			//	else {// if (c==2)
-			//		bots[i] = new RandBot();
-			//	}
+//				bots[i] = new DumbBot();
+//				if (c%i==1)
+//					bots[i] = new Drone();
+//				else {// if (c==2)
+					bots[i] = new RandBot();
+//				}
 //				else
 //				{
 //					bots[i] = new SentryBot();
 //					c=0;
 //				}
-			//	c++;
+//				c++;
 			}
 		}
 
@@ -1316,7 +1316,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 
 	/**
 	 * Returns the Bullet refernce in the Bullet Array
-	 * @param the bullet array to index through
+	 * @param bullets the bullet array to index through
 	 * @return bullet available for firing
 	 */
 	private Bullet getBullet(Bullet[] bullets){
