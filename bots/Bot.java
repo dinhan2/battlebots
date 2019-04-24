@@ -220,7 +220,7 @@ public abstract class Bot {
 	 * should also check to make sure they are only using a single class and no
 	 * inner classes (check to make sure there is only one .class file per Bot).
 	 */
-	final public void run()
+	//final public void run()
 	{
 
 	}
@@ -230,7 +230,7 @@ public abstract class Bot {
 	 * should also check to make sure they are only using a single class and no
 	 * inner classes (check to make sure there is only one .class file per Bot).
 	 */
-	final public void actionPerformed(ActionEvent e)
+	//final public void actionPerformed(ActionEvent e)
 	{
 		
 	}
