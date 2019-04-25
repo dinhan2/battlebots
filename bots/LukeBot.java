@@ -1,11 +1,17 @@
 package bots;
 
+import arena.BattleBotArena;
 import arena.BotInfo;
 import arena.Bullet;
 
 import java.awt.*;
 
 public class LukeBot extends Bot {
+
+    BotHelper botHelper = new BotHelper();
+
+    double DANGERZONE = 200;
+
     /**
      * This method is called at the beginning of each round. Use it to perform
      * any initialization that you require when starting a new round.
@@ -48,7 +54,41 @@ public class LukeBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-        return 0;
+        BotInfo closestBot = botHelper.findClosest(me, liveBots);
+
+        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) < DANGERZONE) {
+            if (Math.abs(botHelper.calcDisplacement(me.getX(), closestBot.getX())) > Math.abs(botHelper.calcDisplacement(me.getY(), closestBot.getY()))) {
+                if (me.getY() > closestBot.getY()) {
+                    return BattleBotArena.DOWN;
+                } else {
+                    return BattleBotArena.UP;
+                }
+            } else {
+                if (me.getX() > closestBot.getX()) {
+                    return BattleBotArena.RIGHT;
+                } else {
+                    return BattleBotArena.LEFT;
+                }
+            }
+        }
+
+        if (me.getX() < closestBot.getX() + 30 && me.getX() > closestBot.getX() - 30) {
+            if (me.getY() > closestBot.getY()) {
+                return BattleBotArena.FIREUP;
+            } else if (me.getY() < closestBot.getY()) {
+                return BattleBotArena.FIREDOWN;
+            }
+        }
+
+        if (me.getY() < closestBot.getY() + 30 && me.getY() > closestBot.getY() - 30) {
+            if (me.getX() > closestBot.getX()) {
+                return BattleBotArena.FIRELEFT;
+            } else if (me.getX() < closestBot.getX()) {
+                return BattleBotArena.FIRERIGHT;
+            }
+        }
+
+        return BattleBotArena.STAY;
     }
 
     /**
@@ -64,7 +104,8 @@ public class LukeBot extends Bot {
      */
     @Override
     public void draw(Graphics g, int x, int y) {
-
+        g.setColor(Color.red);
+        g.fillRect(x+2, y+2, RADIUS*2-4, RADIUS*2-4);
     }
 
     /**
