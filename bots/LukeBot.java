@@ -10,7 +10,7 @@ public class LukeBot extends Bot {
 
     BotHelper botHelper = new BotHelper();
 
-    double DANGERZONE = 200;
+    double DANGERZONE = 150;
 
     /**
      * This method is called at the beginning of each round. Use it to perform
@@ -54,10 +54,55 @@ public class LukeBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
+
+
         BotInfo closestBot = botHelper.findClosest(me, liveBots);
 
+        //Code for firing
+        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) < 150) {
+            if (me.getX() < closestBot.getX() + 20 && me.getX() > closestBot.getX() - 20) {
+                if (me.getY() > closestBot.getY()) {
+                    return BattleBotArena.FIREUP;
+                } else if (me.getY() < closestBot.getY()) {
+                    return BattleBotArena.FIREDOWN;
+                }
+            }
+
+            if (me.getY() < closestBot.getY() + 20 && me.getY() > closestBot.getY() - 20) {
+                if (me.getX() > closestBot.getX()) {
+                    return BattleBotArena.FIRELEFT;
+                } else if (me.getX() < closestBot.getX()) {
+                    return BattleBotArena.FIRERIGHT;
+                }
+            }
+
+        }
+
+        Bullet closestBullet = botHelper.findClosest(me, bullets);
+
+        //Code for bullet dodge
+        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBullet.getX(), closestBullet.getY()) < DANGERZONE) {
+            if (closestBullet.getXSpeed() != 0 && closestBullet.getYSpeed() == 0) {
+                if (me.getY() < closestBullet.getY()) {
+                    return BattleBotArena.UP;
+                } else {
+                    return BattleBotArena.DOWN;
+                }
+            }
+
+            if (closestBullet.getYSpeed() != 0 && closestBullet.getXSpeed() == 0) {
+                if (me.getX() > closestBullet.getX()) {
+                    return BattleBotArena.RIGHT;
+                } else {
+                    return BattleBotArena.LEFT;
+                }
+            }
+        }
+
+        /*
+
         if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) < DANGERZONE) {
-            if (Math.abs(botHelper.calcDisplacement(me.getX(), closestBot.getX())) > Math.abs(botHelper.calcDisplacement(me.getY(), closestBot.getY()))) {
+            if (Math.abs(me.getX() - closestBot.getX()) > Math.abs(me.getY() - closestBot.getY())) {
                 if (me.getY() > closestBot.getY()) {
                     return BattleBotArena.DOWN;
                 } else {
@@ -72,21 +117,7 @@ public class LukeBot extends Bot {
             }
         }
 
-        if (me.getX() < closestBot.getX() + 30 && me.getX() > closestBot.getX() - 30) {
-            if (me.getY() > closestBot.getY()) {
-                return BattleBotArena.FIREUP;
-            } else if (me.getY() < closestBot.getY()) {
-                return BattleBotArena.FIREDOWN;
-            }
-        }
-
-        if (me.getY() < closestBot.getY() + 30 && me.getY() > closestBot.getY() - 30) {
-            if (me.getX() > closestBot.getX()) {
-                return BattleBotArena.FIRELEFT;
-            } else if (me.getX() < closestBot.getX()) {
-                return BattleBotArena.FIRERIGHT;
-            }
-        }
+         */
 
         return BattleBotArena.STAY;
     }
