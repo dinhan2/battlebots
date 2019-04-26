@@ -1,5 +1,6 @@
 package bots;
 
+import arena.BattleBotArena;
 import arena.BotInfo;
 import arena.Bullet;
 
@@ -48,7 +49,58 @@ public class KylerBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
+        BotHelper helper = new BotHelper();
+        if (liveBots.length > 0 && bullets.length > 0) {
+            BotInfo closest = helper.findClosest(me, liveBots);
+            Bullet closestBullet = helper.findClosest(me, bullets);
+
+            double bulletDistance = calcDistance(closestBullet.getX(), closestBullet.getY(), me.getX(), me.getY());
+
+            if (bulletDistance <= 100) {
+                if (closestBullet.getXSpeed() != 0) {
+                    if (closestBullet.getY() > me.getY() - (Bot.RADIUS * 1.1) && closestBullet.getY() < me.getY() + (Bot.RADIUS * 1.1)) {
+                        return BattleBotArena.UP;
+                    }
+                } else if (closestBullet.getYSpeed() != 0) {
+                    if (closestBullet.getX() < me.getX() + Bot.RADIUS && closestBullet.getX() > me.getX() - Bot.RADIUS) {
+                        return BattleBotArena.RIGHT;
+                    }
+                }
+            }
+
+            if (me.getY() > closest.getY() - Bot.RADIUS && me.getY() < closest.getY() + Bot.RADIUS) {
+                if (shotOK) {
+                    if (closest.getX() < me.getX()) {
+                        return BattleBotArena.FIRELEFT;
+                    } else {
+                        return BattleBotArena.FIRERIGHT;
+                    }
+                }
+            } else if (me.getX() > closest.getX() - Bot.RADIUS && me.getX() < closest.getX() + Bot.RADIUS) {
+                if (shotOK) {
+                    if (closest.getY() < me.getY()) {
+                        return BattleBotArena.FIREUP;
+                    } else {
+                        return BattleBotArena.FIREDOWN;
+                    }
+                }
+            }
+
+            if (closest.getY() > me.getY()) {
+                return BattleBotArena.DOWN;
+            } else if (closest.getY() < me.getY()) {
+                return BattleBotArena.UP;
+            }
+        }
+
         return 0;
+    }
+
+    public double calcDistance(double x1, double y1, double x2, double y2) {
+        double displacementX = Math.abs(x1 - x2);
+        double displacementY = Math.abs(y1 - y2);
+
+        return Math.sqrt(Math.pow(displacementX, 2) + Math.pow(displacementY, 2));
     }
 
     /**
@@ -64,7 +116,8 @@ public class KylerBot extends Bot {
      */
     @Override
     public void draw(Graphics g, int x, int y) {
-
+        g.setColor(Color.lightGray);
+        g.fillOval(x, y, Bot.RADIUS*2, Bot.RADIUS*2);
     }
 
     /**
@@ -75,7 +128,7 @@ public class KylerBot extends Bot {
      */
     @Override
     public String getName() {
-        return null;
+        return "KylerBot";
     }
 
     /**
@@ -89,7 +142,7 @@ public class KylerBot extends Bot {
      */
     @Override
     public String getTeamName() {
-        return null;
+        return "Arena";
     }
 
     /**
