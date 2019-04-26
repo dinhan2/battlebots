@@ -2,6 +2,7 @@ package bots;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+import arena.BattleBotArena;
 import arena.BotInfo;
 import arena.Bullet;
 
@@ -72,6 +73,16 @@ import arena.Bullet;
  */
 public class SamBot extends Bot{
     Image current, up, down, right, left;
+    BotHelper helpbot = new BotHelper();
+
+
+    private String name;
+    private String[] killMessage = {"SamBot #1!!!!", "EPIC", "HEHEHEHEHE","BYE BYE!!!"};
+    private int msgCounter = 0;
+    private int move;
+    private String nextMessage = null;
+
+    private Image image = null;
     /**
      * The radius of a Bot. Each Bot should fit into a circle inscribed into a
      * square with height and width equal to RADIUS * 2.
@@ -115,17 +126,77 @@ public class SamBot extends Bot{
      * <i>incomingMessage(String)</i> which will be the echo of the broadcast message
      * coming back to the Bot.
      *
-     * @param me		A BotInfo object with all publicly available info about this Bot
-     * @param shotOK	True iff a FIRE move is currently allowed
-     * @param liveBots	An array of BotInfo objects for the other Bots currently in play
-     * @param deadBots	An array of BotInfo objects for the dead Bots littering the arena
-     * @param bullets	An array of all Bullet objects currently in play
+     * @param-me		A BotInfo object with all publicly available info about this Bot
+     * @param-shotOK	True iff a FIRE move is currently allowed
+     * @param-liveBots	An array of BotInfo objects for the other Bots currently in play
+     * @param-deadBots	An array of BotInfo objects for the dead Bots littering the arena
+     * @param-bullets	An array of all Bullet objects currently in play
      * @return			A legal move (use the constants defined in BattleBotArena)
      */
+
+
+
+
+
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-    int move = 0;
-        return move;
-    }
+
+        BotInfo closest = helpbot.findClosest(me, liveBots);
+        if (--msgCounter == 0)
+        {
+            move = BattleBotArena.SEND_MESSAGE;
+            return move;
+        }
+
+        for (int i=0; i>-1; i++) {
+            double d = Math.abs(me.getX() - liveBots[i].getX()) + Math.abs(me.getY() - liveBots[i].getY());
+            if (d < 300) {
+                if (me.getX() > liveBots[i].getX()) {
+                    return BattleBotArena.RIGHT;
+                } else if (me.getX() < liveBots[i].getX()) {
+                    return BattleBotArena.LEFT;
+                } else if (me.getY() > liveBots[i].getY()) {
+                    return BattleBotArena.DOWN;
+                } else if (me.getY() < liveBots[i].getY()) {
+                    return BattleBotArena.UP;
+                }
+            }
+                    if (me.getY() > closest.getY()) {
+                        return BattleBotArena.FIREUP;
+                    } else if (me.getY() < closest.getY()) {
+                        return BattleBotArena.FIREDOWN;
+                    } else if (me.getX() <closest.getX()) {
+                        return BattleBotArena.FIRERIGHT;
+                    } else if (me.getX() > closest.getX()) {
+                        return BattleBotArena.FIRELEFT;
+                    } else if (me.getX() == closest.getX() && me.getY() < closest.getY() ) {
+                        return BattleBotArena.FIREDOWN;
+                    } else if (me.getX() == closest.getX() && me.getY() > closest.getY() ) {
+                        return BattleBotArena.FIREUP;
+                    } else if (me.getX() < closest.getX() && me.getY() == closest.getY() ) {
+                        return BattleBotArena.FIRERIGHT;
+                    } else if (me.getX() > closest.getX() && me.getY() == closest.getY() ) {
+                        return BattleBotArena.FIRELEFT;
+                    }
+            double b = Math.abs(me.getX() - bullets[i].getX()) + Math.abs(me.getY() - bullets[i].getY());
+                    if (b < 30) {
+                if (me.getX() > bullets[i].getX()) {
+                    return BattleBotArena.UP;
+                } else if (me.getX() < bullets[i].getX()) {
+                    return BattleBotArena.UP;
+                } else if (me.getY() > bullets[i].getY()) {
+                    return BattleBotArena.LEFT;
+                } else if (me.getY() < bullets[i].getY()) {
+                    return BattleBotArena.LEFT;
+                }
+            }
+            }
+
+        return 0;
+        }
+
+
+
+
     /**
      * Called when it is time to draw the Bot. Your Bot should be (mostly)
      * within a circle inscribed inside a square with top left coordinates
@@ -138,8 +209,8 @@ public class SamBot extends Bot{
      * @param y The y location of the top left corner of the drawing area
      */
     public void draw (Graphics g, int x, int y){
-        if (current != null)
-            g.drawImage(current, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null);
+        if (image != null)
+            g.drawImage(image, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null);
         else
         {
             g.setColor(Color.lightGray);
@@ -154,7 +225,9 @@ public class SamBot extends Bot{
      * @return The Bot's name
      */
     public String getName(){
-    return null;
+        if (name == null)
+            name = "SamBot";
+        return name;
     }
 
     /**
@@ -166,9 +239,12 @@ public class SamBot extends Bot{
      *
      * @return The Bot's current team name
      */
-    public String getTeamName(){
-    return null;
+    public String getTeamName()
+    {
+        return "Arena";
     }
+
+
 
     /**
      * This is only called after you have requested a SEND_MESSAGE move (see
@@ -180,7 +256,9 @@ public class SamBot extends Bot{
      * @return The message you want to broadcast
      */
     public String outgoingMessage(){
-    return null;
+        String msg = nextMessage;
+        nextMessage = null;
+        return msg;
     }
 
     /**
@@ -190,7 +268,12 @@ public class SamBot extends Bot{
      * @param msg The text of the message that was broadcast.
      */
     public void incomingMessage(int botNum, String msg){
-
+        if (botNum == BattleBotArena.SYSTEM_MSG && msg.matches(".*destroyed by "+getName()+".*"))
+        {
+            int msgNum = (int)(Math.random()*killMessage.length);
+            nextMessage = killMessage[msgNum];
+            msgCounter = (int)(Math.random()*30 + 30);
+        }
     }
 
     /**
@@ -207,7 +290,7 @@ public class SamBot extends Bot{
      */
     public  String[] imageNames(){
         {
-            String[] paths = {"drone_up.png", "drone_down.png", "drone_right.png", "drone_left.png"};
+            String[] paths = {"sambot.png"};
             return paths;
         }
     }
@@ -229,15 +312,10 @@ public class SamBot extends Bot{
     public void loadedImages(Image[] images){
         if (images != null)
         {
-            if (images.length > 0)
-                up = images[0];
-            if (images.length > 1)
-                down = images[1];
-            if (images.length > 2)
-                right = images[2];
-            if (images.length > 3)
-                left = images[3];
-            current = up;
+
+            if (images != null && images.length > 0)
+                image = images[0];
+
         }
     }
 
@@ -267,7 +345,7 @@ public class SamBot extends Bot{
      * should also check to make sure they are only using a single class and no
      * inner classes (check to make sure there is only one .class file per Bot).
      */
-    public void actionPerformed(ActionEvent e)
+   final public void actionPerformed(ActionEvent e)
     {
 
     }
