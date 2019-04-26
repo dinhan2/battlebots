@@ -7,23 +7,22 @@ import arena.Bullet;
 import java.awt.*;
 
 public class QirongBot extends Bot {
-    boolean debug = true;
-    boolean bulletDetectionDebug = false;
+    private boolean debug = true;
+    private boolean bulletDetectionDebug = false;
     BotHelper botHelper = new BotHelper();
-    static double DANGERZONE = 50;
-    static double bulletDodgeZone = 100;
-    int moveTimer = 0;
-    int bulletTrackTimer = 0;
-    int dodgeVariationTimer = 0;
-    int moveVariationTimer = 5;
-    int fireDelayTimer = 0;
-    double bulletInitialX;
-    double bulletInitialY;
+    private static double DANGERZONE = 50;
+    private static double bulletDodgeZone = 100;
+    private int moveTimer = 0;
+    private int bulletTrackTimer = 0;
+    private int dodgeVariationTimer = 0;
+    private int moveVariationTimer = 5;
+    private int fireDelayTimer = 0;
+    private double bulletInitialX;
+    private double bulletInitialY;
     double bulletFinalX;
     double bulletFinalY;
     double bulletDeltaX;
     double bulletDeltaY;
-    boolean requiredDodge;
     /**
      * This method is called at the beginning of each round. Use it to perform
      * any initialization that you require when starting a new round.
@@ -87,54 +86,7 @@ public class QirongBot extends Bot {
                 bulletTrackTimer++;
 
             }
-
         }
-        else{
-            requiredDodge = false;
-        }
-        /*if (bulletDeltaX > 0){
-            if(me.getX() >closestBullet.getX() ) { //detects whether the bullet needs to be dodged
-                if (bulletDetectionDebug) {System.out.println("incoming RIGHT " + moveTimer);}
-                requiredDodge = true;
-                if (me.getY() < closestBullet.getY()){//either moves the robot up or down to evade the bullet
-                    return BattleBotArena.UP;
-                }else{
-                    return BattleBotArena.DOWN;
-                }
-            }
-        }else if(bulletDeltaX < 0){
-            if(me.getX() < closestBullet.getX()) {
-                {
-                    if (bulletDetectionDebug){System.out.println("incoming LEFT " + moveTimer);}
-                    requiredDodge = true;
-                    if (me.getY() < closestBullet.getY()){//either moves the robot up or down to evade the bullet
-                        return BattleBotArena.UP;
-                    }else{
-                        return BattleBotArena.DOWN;
-                    }
-                }
-            }
-        if (bulletDeltaY > 0) {
-            if (me.getY() > closestBullet.getY()) {
-
-                if (bulletDetectionDebug) {
-                    System.out.println("incoming DOWN " + moveTimer);
-                }
-                requiredDodge = true;
-                if (me.getX() < closestBullet.getX()){//either moves the robot up or down to evade the bullet
-                    return BattleBotArena.LEFT;
-                }else{
-                    return BattleBotArena.RIGHT;
-                }
-            }
-        }
-        }else if(bulletDeltaY < 0) {
-
-            if (me.getY() < closestBullet.getY()) {
-                if (bulletDetectionDebug) {System.out.println("incoming UP " + moveTimer); }
-                requiredDodge = true;
-            }
-        }*/
         if(botHelper.manhattanDist(me.getX()+1,me.getY(),closestBullet.getX(),closestBullet.getY())<bulletDodgeZone){//code for bullet dodge
             if (bulletDeltaX != 0 ) {//if bulletDeltaX is not zero, the bullet is moving horizontally
                 if (me.getY() + 1 <= closestBullet.getY()) {//move up if bot is already above the bullet
@@ -181,7 +133,7 @@ public class QirongBot extends Bot {
                     return BattleBotArena.FIRELEFT;
                 }
             }
-        if(botHelper.manhattanDist(me.getX(),me.getY(),closestBot.getX(),closestBot.getY())<DANGERZONE){
+        if(botHelper.manhattanDist(me.getX(),me.getY(),closestBot.getX(),closestBot.getY())<DANGERZONE){//Code to flee from very close bots
             if (moveTimer <= 10){
                 if (me.getX() < closestBot.getX()) {//fleeing left or right to keep a distance from other robots
                     moveTimer++;
@@ -218,6 +170,7 @@ public class QirongBot extends Bot {
                     return BattleBotArena.LEFT;
                 }
             }
+
             if (moveTimer > 5) {
                 if (me.getY() < closestBot.getY()) {//moving up or down to match the enemy robot's Y coordinates
                     moveTimer++;
@@ -338,10 +291,6 @@ public class QirongBot extends Bot {
      */
     @Override
     public void loadedImages(Image[] images) {
-
-    }
-    public void calculateBulletVelocity(){
-
 
     }
 }
