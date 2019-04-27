@@ -6,15 +6,29 @@ import arena.Bullet;
 
 import java.awt.*;
 
+/**
+ * The KylerBot is a bot which intelligently targets other bots and avoids incoming
+ * projectiles. It does this determining when a bot is close enough to be shot and
+ * follows the targetted bot until it can make a clear shot. It avoids bullets by
+ * determining which direction the bullet is travelling, and moving accordingly to avoid being hit.
+ *
+ * @author Kyler Swanson
+ * @version v1.0
+ */
 public class KylerBot extends Bot {
+
+    // Stores current image
+    Image image;
+
+    private static int AVOIDANCE_FEATHER = 20; // The bigger the number, the bigger the safe zone that the bot will try to protect around itself from other projectiles
+    private static int AVOIDANCE_TRIGGER = 100; // The distance at which the bot will start to avoid a bullet at
+
     /**
      * This method is called at the beginning of each round. Use it to perform
      * any initialization that you require when starting a new round.
      */
     @Override
-    public void newRound() {
-
-    }
+    public void newRound() { }
 
     /**
      * This method is called at every time step to find out what you want your
@@ -49,35 +63,59 @@ public class KylerBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
+        // Create new instant of BotHelper, used for determining where the closest bot/bullet is
         BotHelper helper = new BotHelper();
-        if (liveBots.length > 0 && bullets.length > 0) {
-            BotInfo closest = helper.findClosest(me, liveBots);
-            Bullet closestBullet = helper.findClosest(me, bullets);
 
+        // Make sure there are atleast 1 enemy bot and 1 bullet in the arena
+        if (liveBots.length > 0 && bullets.length > 0) {
+            BotInfo closest = helper.findClosest(me, liveBots); // determine closest enemy bot
+            Bullet closestBullet = helper.findClosest(me, bullets); // determine closest bullet
+
+            // find the distance using pythagorean theorem of closest bullet
             double bulletDistance = calcDistance(closestBullet.getX(), closestBullet.getY(), me.getX(), me.getY());
 
-            if (bulletDistance <= 100) {
-                if (closestBullet.getXSpeed() != 0) {
-                    if (closestBullet.getY() > me.getY() - (Bot.RADIUS * 1.1) && closestBullet.getY() < me.getY() + (Bot.RADIUS * 1.1)) {
-                        return BattleBotArena.UP;
+            /**
+             * Handle bullet avoidance
+             */
+            if (bulletDistance <= AVOIDANCE_TRIGGER) { // if bullet is within 100 pixels
+                if (closestBullet.getXSpeed() != 0) { // if the bullet is moving left/right
+                    // if bullet's trajectory will collide with our bot, move up
+                    if (closestBullet.getY() >= me.getY() - AVOIDANCE_FEATHER && closestBullet.getY() <= me.getY() + (Bot.RADIUS * 2) + AVOIDANCE_FEATHER) {
+                        // if bullet is below, move up, otherwise move down
+                        if (closestBullet.getY() > me.getY()) {
+                            return BattleBotArena.UP;
+                        } else {
+                            return BattleBotArena.DOWN;
+                        }
                     }
-                } else if (closestBullet.getYSpeed() != 0) {
-                    if (closestBullet.getX() < me.getX() + Bot.RADIUS && closestBullet.getX() > me.getX() - Bot.RADIUS) {
-                        return BattleBotArena.RIGHT;
+                } else if (closestBullet.getYSpeed() != 0) { // if the bullet is moving up/down
+                    // if bullet's trajectory will collide with our bot, move right
+                    if (closestBullet.getX() <= me.getX() + (Bot.RADIUS * 2) + AVOIDANCE_FEATHER && closestBullet.getX() >= me.getX() - AVOIDANCE_FEATHER) {
+                        // if bullet is to the right, move left, otherwise move right
+                        if (closestBullet.getX() > me.getX()) {
+                            return BattleBotArena.LEFT;
+                        } else {
+                            return BattleBotArena.RIGHT;
+                        }
                     }
                 }
             }
 
-            if (me.getY() > closest.getY() - Bot.RADIUS && me.getY() < closest.getY() + Bot.RADIUS) {
+            /**
+             * Handle combat
+             */
+            if (me.getY() + Bot.RADIUS >= closest.getY() && me.getY() + Bot.RADIUS <= closest.getY() + (Bot.RADIUS * 2)) { // make sure the enemy bot is directly to the right or left of our bot
                 if (shotOK) {
+                    // if the enemy bot is to the left of us, shoot left, otherwise shoot right
                     if (closest.getX() < me.getX()) {
                         return BattleBotArena.FIRELEFT;
                     } else {
                         return BattleBotArena.FIRERIGHT;
                     }
                 }
-            } else if (me.getX() > closest.getX() - Bot.RADIUS && me.getX() < closest.getX() + Bot.RADIUS) {
+            } else if (me.getX() + Bot.RADIUS >= closest.getX() && me.getX() + Bot.RADIUS <= closest.getX() + (Bot.RADIUS * 2)) { // if the enemy bot is not to the right or left, check up and down
                 if (shotOK) {
+                    // if the enemy bot is above us, shoot up, otherwise shoot down
                     if (closest.getY() < me.getY()) {
                         return BattleBotArena.FIREUP;
                     } else {
@@ -86,9 +124,26 @@ public class KylerBot extends Bot {
                 }
             }
 
-            if (closest.getY() > me.getY()) {
+            /**
+             * Handle movement
+             */
+            if (closest.getY() > me.getY()) { // if the closest bot is below us, try to move down
+                // if there is a bullet below us, don't move
+                if (closestBullet.getY() > me.getY() + (BattleBotArena.BOT_SPEED * 2)
+                    && closestBullet.getY() < me.getY() + (BattleBotArena.BOT_SPEED * 2) + (Bot.RADIUS * 2)
+                    && closestBullet.getXSpeed() != 0) {
+
+                    return BattleBotArena.STAY;
+                }
                 return BattleBotArena.DOWN;
-            } else if (closest.getY() < me.getY()) {
+            } else if (closest.getY() < me.getY()) { // if the closest bot is above us, try to move up
+                // if there is a bullet above us, don't move
+                if (closestBullet.getY() > me.getY() - (BattleBotArena.BOT_SPEED * 2)
+                    && closestBullet.getY() < me.getY()
+                    && closestBullet.getXSpeed() != 0) {
+
+                    return BattleBotArena.STAY;
+                }
                 return BattleBotArena.UP;
             }
         }
@@ -96,6 +151,16 @@ public class KylerBot extends Bot {
         return 0;
     }
 
+    /**
+     * Used to determine the distance of an another point in the arena.
+     * This is done by using Pythagorean Theorem
+     *
+     * @param x1 The x location of the first point (x1, y1)
+     * @param y1 The y location of the first point (x1, y1)
+     * @param x2 The x location of the second point (x2, y2)
+     * @param y2 The x location of the second point (x2, y2)
+     * @return The distance in units
+     */
     public double calcDistance(double x1, double y1, double x2, double y2) {
         double displacementX = Math.abs(x1 - x2);
         double displacementY = Math.abs(y1 - y2);
@@ -116,8 +181,7 @@ public class KylerBot extends Bot {
      */
     @Override
     public void draw(Graphics g, int x, int y) {
-        g.setColor(Color.lightGray);
-        g.fillOval(x, y, Bot.RADIUS*2, Bot.RADIUS*2);
+        g.drawImage(image, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null);
     }
 
     /**
@@ -184,7 +248,8 @@ public class KylerBot extends Bot {
      */
     @Override
     public String[] imageNames() {
-        return new String[0];
+        String[] paths = {"starfish4.png"};
+        return paths;
     }
 
     /**
@@ -203,6 +268,8 @@ public class KylerBot extends Bot {
      */
     @Override
     public void loadedImages(Image[] images) {
-
+        if (images != null) {
+            image = images[0];
+        }
     }
 }
