@@ -143,15 +143,15 @@ public class SamBot extends Bot{
             }
             else if (me.getX() < closest.getX() && me.getY() > closest.getY() + Bot.RADIUS) { //if closest enemy is to the right shoot right
                 return BattleBotArena.FIRERIGHT;
-            }else if (me.getX() > closest.getX() && me.getY() > closest.getY() + Bot.RADIUS) { //if closest enemy is to the left shoot left
+            }else if (me.getX() > closest.getX() && me.getY() < closest.getY() + Bot.RADIUS) { //if closest enemy is to the left shoot left
                 return BattleBotArena.FIRELEFT;
             }
-            else if (me.getX() > closest.getX() && me.getY() > closest.getY() - Bot.RADIUS) { //if closest enemy is to the left shoot left
+            else if (me.getX() > closest.getX() && me.getY() < closest.getY() - Bot.RADIUS) { //if closest enemy is to the left shoot left
                 return BattleBotArena.FIRELEFT;
             }
-                if (me.getY() > closest.getY() && me.getX() > closest.getX() - Bot.RADIUS) { //if closest enemy is above it shoot up
+                if (me.getY() > closest.getY() && me.getX() < closest.getX() - Bot.RADIUS) { //if closest enemy is above it shoot up
                 return BattleBotArena.FIREUP;
-            } else if (me.getY() > closest.getY() && me.getX() > closest.getX() + Bot.RADIUS) { //if closest enemy is below shoot down
+            } else if (me.getY() > closest.getY() && me.getX() < closest.getX() + Bot.RADIUS) { //if closest enemy is below shoot down
                 return BattleBotArena.FIREUP;
             }
             else if (me.getY() < closest.getY() && me.getX() > closest.getX() - Bot.RADIUS) { //if closest enemy is above it shoot up
