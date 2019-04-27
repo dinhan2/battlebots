@@ -1,3 +1,29 @@
+
+/** The Rahim bot
+ *
+ *     This is a bot that looks towards defence equally as offence
+ *     It focuses on bullet dodging before it focuses on shooting others
+ *     This is the superior strategy since there is no way it is possible to shoot everyone around you
+ *     when you are surrounded by bullets. It would be like suicide
+ *
+ *
+ *      additional improvements
+ *
+ *      - hide behind dead bots since bullets can't go through dead bots if no ammo left
+ *      - find whether is it more efficient to move towards the right/left or up/down by
+ *      referencing how far the bot is from the edge of the screen
+ *      - check whether it is more efficient to follow the x or y axis towards another bot
+ *      by calculating the horizontal and vertical distance 
+ *
+ *
+ *
+ *     */
+
+
+
+
+
+
 package bots;
 
 import arena.BattleBotArena;
@@ -58,33 +84,27 @@ public class BotRahim extends Bot {
      * @return A legal move (use the constants defined in BattleBotArena)
      */
     @Override
+
+    // The dodging ifs will run before anything else to ensure that it is made a priority
+    // over other ifs.
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
 
 
 
 
-
-        //System.out.println(me.getX() +" "+ me.getY() );
+        // find out the closest bullet
         Bullet closestBullet = helpMe.findClosest(me, bullets);
-        double rand = Math.random();
 
+        // check to see how close the closest bullet is to my bot and determine if it is dangerous
         if ((helpMe.calcDistance(me.getX(), me.getY(), closestBullet.getX(), closestBullet.getY()) < dodgeZone*1.5)) {
 
 
 
-
+            // check to see if the bot will get hit by the bullet, if yes, dodge
             if (Math.abs(me.getY() - closestBullet.getY()) < (Bot.RADIUS*2))  {
 
-                //System.out.println("not mid");
 
-//                if ((me.getY() > (474/2)) && (me.getY() < (474/2))){
-//
-//                    //System.out.println("mid");
-//                    return BattleBotArena.DOWN;
-//
-//
-//                }
-
+                // All these ifs will check which direction the bullet is coming from and then do perform appropriate dodge
                 if (me.getY() < closestBullet.getY()) {
 
                     if (closestBullet.getYSpeed() < 0) {
@@ -162,36 +182,36 @@ public class BotRahim extends Bot {
         }
 
 
+        // find the  alive closest bot
         BotInfo closestBot = helpMe.findClosest(me, liveBots);
 
+        // find the x and y distances between the bot and me
         double xDist = Math.abs(me.getX() - closestBot.getX());
         double yDist = Math.abs(me.getY() - closestBot.getY());
 
+
+        // is the bot in danger range and is alive
         if ((((BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY())) < dodgeZone)) && !(closestBot.isDead())) {
 
 
-            //BotInfo deadBot = helpMe.findClosest(me, deadBots);
 
-            //if (!shotOK) {System.out.println("no shot");}
-
-            int four = 4;
-
+//          check to see if it is in the shooting range
+//          by subtracting the y values, we can see if it is more or less than the radius which would tell us if it can be hit by a bullet
             if (Math.abs(me.getY() - closestBot.getY()) < (Bot.RADIUS*2))  {
 
 
-
+                // find a new bot if the previous once is dead
                if (closestBot.isDead()) {
 
                    closestBot = helpMe.findClosest(me, liveBots);
 
                }
 
+               // fire appropriately
                 if (me.getX() < closestBot.getX()) {
-                    four--;
                     return BattleBotArena.FIRERIGHT;
                 }
                 else if (me.getX() > closestBot.getX()) {
-                    four--;
                     return BattleBotArena.FIRELEFT;
 
                 }
@@ -206,12 +226,10 @@ public class BotRahim extends Bot {
                 }
 
                 if (me.getY() < closestBot.getY()) {
-                    four--;
                     return BattleBotArena.FIREDOWN;
 
                 }
                 else if (me.getY() > closestBot.getY()) {
-                    four--;
                     return BattleBotArena.FIREUP;
 
                 }
@@ -220,33 +238,10 @@ public class BotRahim extends Bot {
 
             }
 
-//            else {
-//
-//                if (four == 4) {
-//                    four--;
-//                    return BattleBotArena.UP;
-//                }
-//                else if (four == 3) {
-//                    four--;
-//                    return BattleBotArena.RIGHT;
-//                }
-//                else if (four == 2) {
-//                    four--;
-//                    return BattleBotArena.LEFT;
-//                }
-//                else if (four == 1) {
-//                    four--;
-//                    return BattleBotArena.DOWN;
-//                }
-//                else {
-//                    four = 4;
-//                    return BattleBotArena.LEFT;
-//                }
-//            }
 
         }
 
-
+            // find the most efficient route to the nearest bot
             else if (xDist < yDist) {
 
                 if (me.getX() < closestBot.getX()) {
@@ -273,6 +268,9 @@ public class BotRahim extends Bot {
                     return BattleBotArena.UP;
 
                 }
+
+                // if there are no bullets left, try to hide behind a dead bot with the same logic
+                // used to get near bots that are wanted dead
                 if (!shotOK) {
 
                     //System.out.println("reload");
@@ -310,42 +308,11 @@ public class BotRahim extends Bot {
                                 }
 
                             }
-
                         }
-
                     }
                 }
-
-
             }
-
-//            else if (xDist == yDist) {
-//
-//                if (me.getY() < closestBot.getY()) {
-//
-//                    return BattleBotArena.DOWN;
-//
-//                }
-//                else if (me.getY() > closestBot.getY()) {
-//
-//                    return BattleBotArena.UP;
-//
-//                }
-//
-//
-//            }
-
-
-
-
         }
-
-
-
-
-
-
-
 
         return 0;
     }
