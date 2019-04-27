@@ -9,8 +9,10 @@ import java.awt.*;
 /**
  * The KylerBot is a bot which intelligently targets other bots and avoids incoming
  * projectiles. It does this determining when a bot is close enough to be shot and
- * follows the targetted bot until it can make a clear shot. It avoids bullets by
- * determining which direction the bullet is travelling, and moving accordingly to avoid being hit.
+ * follows the targetted bot until it can make a clear shot. My bot only moves up
+ * and down to track down other bots, for increased efficiency. It avoids bullets by
+ * determining which direction the bullet is travelling, and moving accordingly to
+ * avoid being hit.
  *
  * @author Kyler Swanson
  * @version v1.0
@@ -21,7 +23,8 @@ public class KylerBot extends Bot {
     Image image;
 
     private static int AVOIDANCE_FEATHER = 20; // The bigger the number, the bigger the safe zone that the bot will try to protect around itself from other projectiles
-    private static int AVOIDANCE_TRIGGER = 100; // The distance at which the bot will start to avoid a bullet at
+    private static int AVOIDANCE_TRIGGER = 90; // The distance at which the bot will start to avoid a bullet at
+    private static int MOVEMENT_AVOIDANCE_FEATHER = 2; // The multiplier which determines how far a bullet should be before it stops moving relative to the bot's velocity
 
     /**
      * This method is called at the beginning of each round. Use it to perform
@@ -129,8 +132,8 @@ public class KylerBot extends Bot {
              */
             if (closest.getY() > me.getY()) { // if the closest bot is below us, try to move down
                 // if there is a bullet below us, don't move
-                if (closestBullet.getY() > me.getY() + (BattleBotArena.BOT_SPEED * 2)
-                    && closestBullet.getY() < me.getY() + (BattleBotArena.BOT_SPEED * 2) + (Bot.RADIUS * 2)
+                if (closestBullet.getY() > me.getY()
+                    && closestBullet.getY() < me.getY() + (BattleBotArena.BOT_SPEED * MOVEMENT_AVOIDANCE_FEATHER) + (Bot.RADIUS * 2)
                     && closestBullet.getXSpeed() != 0) {
 
                     return BattleBotArena.STAY;
@@ -138,7 +141,7 @@ public class KylerBot extends Bot {
                 return BattleBotArena.DOWN;
             } else if (closest.getY() < me.getY()) { // if the closest bot is above us, try to move up
                 // if there is a bullet above us, don't move
-                if (closestBullet.getY() > me.getY() - (BattleBotArena.BOT_SPEED * 2)
+                if (closestBullet.getY() > me.getY() - (BattleBotArena.BOT_SPEED * MOVEMENT_AVOIDANCE_FEATHER)
                     && closestBullet.getY() < me.getY()
                     && closestBullet.getXSpeed() != 0) {
 
