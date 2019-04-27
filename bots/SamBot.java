@@ -76,6 +76,8 @@ public class SamBot extends Bot{
     BotHelper helpbot = new BotHelper();
 
 
+
+
     private String name;
     private String[] killMessage = {"SamBot #1!!!!", "EPIC", "HEHEHEHEHE","BYE BYE!!!"};
     private int msgCounter = 0;
@@ -139,61 +141,57 @@ public class SamBot extends Bot{
 
 
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-
-        BotInfo closest = helpbot.findClosest(me, liveBots);
-        if (--msgCounter == 0)
-        {
-            move = BattleBotArena.SEND_MESSAGE;
-            return move;
-        }
-
-        for (int i=0; i>-1; i++) {
-            double d = Math.abs(me.getX() - liveBots[i].getX()) + Math.abs(me.getY() - liveBots[i].getY());
-            if (d < 300) {
-                if (me.getX() > liveBots[i].getX()) {
-                    return BattleBotArena.RIGHT;
-                } else if (me.getX() < liveBots[i].getX()) {
-                    return BattleBotArena.LEFT;
-                } else if (me.getY() > liveBots[i].getY()) {
-                    return BattleBotArena.DOWN;
-                } else if (me.getY() < liveBots[i].getY()) {
-                    return BattleBotArena.UP;
-                }
+        if (liveBots.length > 0 && bullets.length > 0) {
+            BotInfo closest = helpbot.findClosest(me, liveBots);
+            Bullet closestbullet = helpbot.findClosest(me, bullets);
+            if (--msgCounter == 0) {
+                move = BattleBotArena.SEND_MESSAGE;
+                return move;
             }
+
+
+            //double d = Math.abs(me.getX() - liveBots[i].getX()) + Math.abs(me.getY() - liveBots[i].getY());
+
+            if (me.getX() > closest.getX() + Bot.RADIUS/2) {
+                return BattleBotArena.LEFT;
+            } else if (me.getX() < closest.getX() - Bot.RADIUS/2) {
+                return BattleBotArena.RIGHT;
+            } else if (me.getY() > closest.getY() + Bot.RADIUS/2) {
+                return BattleBotArena.UP;
+            } else if (me.getY() < closest.getY() - Bot.RADIUS/2) {
+                return BattleBotArena.DOWN;
+            }
+
+
+                double a = BotHelper.manhattanDist(closest.getX(), closest.getY(), me.getX(), me.getY());
+                if (a <= 100) {
                     if (me.getY() > closest.getY()) {
                         return BattleBotArena.FIREUP;
                     } else if (me.getY() < closest.getY()) {
                         return BattleBotArena.FIREDOWN;
-                    } else if (me.getX() <closest.getX()) {
+                    }
+                    if (me.getX() < closest.getX()) {
                         return BattleBotArena.FIRERIGHT;
                     } else if (me.getX() > closest.getX()) {
                         return BattleBotArena.FIRELEFT;
-                    } else if (me.getX() == closest.getX() && me.getY() < closest.getY() ) {
-                        return BattleBotArena.FIREDOWN;
-                    } else if (me.getX() == closest.getX() && me.getY() > closest.getY() ) {
-                        return BattleBotArena.FIREUP;
-                    } else if (me.getX() < closest.getX() && me.getY() == closest.getY() ) {
-                        return BattleBotArena.FIRERIGHT;
-                    } else if (me.getX() > closest.getX() && me.getY() == closest.getY() ) {
-                        return BattleBotArena.FIRELEFT;
                     }
-            double b = Math.abs(me.getX() - bullets[i].getX()) + Math.abs(me.getY() - bullets[i].getY());
-                    if (b < 30) {
-                if (me.getX() > bullets[i].getX()) {
+                }
+
+
+            double b = BotHelper.manhattanDist(closestbullet.getX(), closestbullet.getY(), me.getX(), me.getY());
+            if (b <= 100) {
+                if (closestbullet.getY() > me.getY() - (Bot.RADIUS) && closestbullet.getY() < me.getY() + (Bot.RADIUS)) {
                     return BattleBotArena.UP;
-                } else if (me.getX() < bullets[i].getX()) {
-                    return BattleBotArena.UP;
-                } else if (me.getY() > bullets[i].getY()) {
-                    return BattleBotArena.LEFT;
-                } else if (me.getY() < bullets[i].getY()) {
+                } else if (closestbullet.getY() < me.getY() + (Bot.RADIUS) && closestbullet.getY() > me.getY() - (Bot.RADIUS)) {
                     return BattleBotArena.LEFT;
                 }
             }
-            }
 
-        return 0;
+
+
         }
-
+        return 0;
+    }
 
 
 
