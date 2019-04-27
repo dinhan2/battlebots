@@ -19,9 +19,13 @@ import java.awt.*;
  */
 public class KylerBot extends Bot {
 
+    // Create new instant of BotHelper, used for determining where the closest bot/bullet is
+    BotHelper helper = new BotHelper();
+
     // Stores current image
     Image image;
 
+    // Constant vars
     private static int AVOIDANCE_FEATHER = 20; // The bigger the number, the bigger the safe zone that the bot will try to protect around itself from other projectiles
     private static int AVOIDANCE_TRIGGER = 90; // The distance at which the bot will start to avoid a bullet at
     private static int MOVEMENT_AVOIDANCE_FEATHER = 2; // The multiplier which determines how far a bullet should be before it stops moving relative to the bot's velocity
@@ -66,9 +70,6 @@ public class KylerBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-        // Create new instant of BotHelper, used for determining where the closest bot/bullet is
-        BotHelper helper = new BotHelper();
-
         // Make sure there are atleast 1 enemy bot and 1 bullet in the arena
         if (liveBots.length > 0 && bullets.length > 0) {
             BotInfo closest = helper.findClosest(me, liveBots); // determine closest enemy bot
