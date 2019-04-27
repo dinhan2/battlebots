@@ -8,7 +8,8 @@ import arena.Bullet;
 /**
  * <b>Introduction</b> <br><br>
  *
- * GAME PLAN [This plan I made is simple, track the targets and shoot them, all while dodging bullets, my bot follows the closest bot, dodges the closest bullet, and also shoots at the closest bot]
+ * GAME PLAN [This plan I made is simple, track the targets and shoot them, 
+ * all while dodging bullets, my bot follows the closest bot, dodges the closest bullet, and also shoots at the closest bot]
  * Sambot created week of April 22nd, 2019.
  *
  * This is an abstract class for a BattleBots player. All Bots to be used in the arena
