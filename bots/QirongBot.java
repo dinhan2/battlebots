@@ -14,15 +14,12 @@ public class QirongBot extends Bot {
     private static double bulletDodgeZone = 100;
     private int moveTimer = 0;
     private int bulletTrackTimer = 0;
-    private int dodgeVariationTimer = 0;
-    private int moveVariationTimer = 5;
-    private int fireDelayTimer = 0;
     private double bulletInitialX;
     private double bulletInitialY;
-    double bulletFinalX;
-    double bulletFinalY;
-    double bulletDeltaX;
-    double bulletDeltaY;
+    private double bulletFinalX;
+    private double bulletFinalY;
+    private double bulletDeltaX;
+    private double bulletDeltaY;
     /**
      * This method is called at the beginning of each round. Use it to perform
      * any initialization that you require when starting a new round.
@@ -65,9 +62,10 @@ public class QirongBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-
-        Bullet closestBullet = botHelper.findClosest(me,bullets);
-
+moveTimer++;
+        Bullet closestBullet = botHelper.findClosest(me,bullets);//creates a bothelper to track the nearest bullet
+        BotInfo closestBot = botHelper.findClosest(me, liveBots);//creates a bothelper that will detect the closest live bot
+        //BotInfo closestDeadBot = botHelper.findClosest(me, deadBots);//creates a bothelper that will detect the closest dead bot
         if(botHelper.manhattanDist(me.getX(),me.getY(), closestBullet.getX(),closestBullet.getY()) <bulletDodgeZone) {//calculates the velocity of the nearby bullet
             if (bulletTrackTimer == 1) {
                 bulletFinalX = closestBullet.getX();
@@ -89,70 +87,104 @@ public class QirongBot extends Bot {
         }
         if(botHelper.manhattanDist(me.getX()+1,me.getY(),closestBullet.getX(),closestBullet.getY())<bulletDodgeZone){//code for bullet dodge
             if (bulletDeltaX != 0 ) {//if bulletDeltaX is not zero, the bullet is moving horizontally
+                if (moveTimer == 10 && bulletDeltaX >0){//in cases where enemy bots are rapidly firing, occassionally fires a shot back to disrupt them
+                    if (shotOK) {
+                        return BattleBotArena.FIRELEFT;
+                    }
+                }else if(moveTimer == 10 && bulletDeltaX < 0){
+                    if (shotOK) {
+                        return BattleBotArena.FIRERIGHT;
+                    }
+                }
                 if (me.getY() + 1 <= closestBullet.getY()) {//move up if bot is already above the bullet
                     if (bulletDetectionDebug) {System.out.println("dodging UP " + moveTimer); }
-                        return BattleBotArena.UP;
+                    if(me.getY() < Bot.RADIUS*2){//if there is not enough space to go up, dodge down instead
+                        return BattleBotArena.DOWN;
+                    }
+                    return BattleBotArena.UP;
                     }
                  else if (me.getY() + 1 >closestBullet.getY()) {//move down if bot is below bullet{
                     if (bulletDetectionDebug) {System.out.println("dodging DOWN " + moveTimer); }
+                    if(me.getY() > BattleBotArena.BOTTOM_EDGE - Bot.RADIUS){//if there is not enough space to move down, dodge up
+                        return BattleBotArena.UP;
+                    }
                     return BattleBotArena.DOWN;
                 }
             }
             if (bulletDeltaY != 0){//if bulletDeltaY is not zero, the bullet is moving vertically
+                if (moveTimer == 10 && bulletDeltaY >0){//in cases where enemy bots are rapidly firing, occassionally fires a shot back to disrupt them
+                    if (shotOK) {
+                        return BattleBotArena.FIREUP;
+                    }
+                }else if(moveTimer == 10 && bulletDeltaY < 0){
+                    if (shotOK) {
+                        return BattleBotArena.FIREDOWN;
+                    }
+                }
                 if(me.getX() + 1 <= closestBullet.getX()){
                     if (bulletDetectionDebug) {System.out.println("dodging LEFT " + moveTimer); }
+                    if (me.getX() < Bot.RADIUS){//if there is not enough room to dodge left, dodge right instead
+                        return BattleBotArena.RIGHT;
+                    }
                     return BattleBotArena.LEFT;
                 }else if(me.getX() +1 > closestBullet.getX()){
                     if (bulletDetectionDebug) {System.out.println("dodging RIGHT " + moveTimer); }
+                    if (me.getX() > BattleBotArena.RIGHT_EDGE - Bot.RADIUS){//if there is not enough room to dodge right, dodge left instead
+                        return BattleBotArena.LEFT;
+                    }
                     return BattleBotArena.RIGHT;
                 }
             }
         }
-    BotInfo closestBot = botHelper.findClosest(me, liveBots);
 
 
-            if (moveTimer > 10) {
+
+            if (moveTimer > 10) {//resets the timer that determines whether the bot mvoes up or down
                 moveTimer = 0;
             }
-            if ((me.getX() - closestBot.getX() < 5)&& (me.getX() - closestBot.getX() > -5)) {
+            if ((me.getX() - closestBot.getX() < 5)&& (me.getX() - closestBot.getX() > -5)) {//if the enemy bot's x cordinates are close, this makes it fire up or down
                 if (me.getY() < closestBot.getY()) {
                     if(debug){System.out.println("firingDown "+moveTimer);}
+                    if (shotOK) {
                         return BattleBotArena.FIREDOWN;
+                    }
                 } else {
                     if(debug){System.out.println("firingUp "+moveTimer);}
-                    return BattleBotArena.FIREUP;
+                    if (shotOK) {
+                        return BattleBotArena.FIREUP;
+                    }
                 }
             }
-            if ((me.getY() - closestBot.getY()< 5)&&(me.getY() - closestBot.getY()> -5)) {
+            if ((me.getY() - closestBot.getY()< 5)&&(me.getY() - closestBot.getY()> -5)) {//if the enemy's bot's y coordinates are close, this makes the bot shoot left or right
                 if (me.getX()< closestBot.getX()){
                     if(debug){System.out.println("firingRight "+moveTimer);}
-                    return BattleBotArena.FIRERIGHT;
+                    if (shotOK) {
+                        return BattleBotArena.FIRERIGHT;
+                    }
                 }
                 else {
                     if(debug){System.out.println("firingLeft "+moveTimer);}
-                    return BattleBotArena.FIRELEFT;
+                    if (shotOK) {
+                        return BattleBotArena.FIRELEFT;
+                    }
                 }
             }
         if(botHelper.manhattanDist(me.getX(),me.getY(),closestBot.getX(),closestBot.getY())<DANGERZONE){//Code to flee from very close bots
             if (moveTimer <= 10){
                 if (me.getX() < closestBot.getX()) {//fleeing left or right to keep a distance from other robots
-                    moveTimer++;
                     if(debug){System.out.println("fleeingLeft "+moveTimer);}
                     return BattleBotArena.LEFT;
                 } else {
-                    moveTimer++;
                     if(debug){System.out.println("fleeingRight "+moveTimer);}
                     return BattleBotArena.RIGHT;
                 }
 
             }
             if (moveTimer > 10) {
-                if (me.getY() < closestBot.getY()) {//fleeing up or down to match the enemy robot's Y coordinates
-                    moveTimer++;
+                if (me.getY() < closestBot.getY()) {//fleeing up or down to keep a distance from other robots
                     if(debug){System.out.println("fleeingUp "+moveTimer);}
                     return BattleBotArena.UP;
                 } else {
-                    moveTimer++;
                     if(debug){System.out.println("fleeingDown "+moveTimer);}
                     return BattleBotArena.DOWN;
                 }
@@ -160,24 +192,44 @@ public class QirongBot extends Bot {
         }
             if (moveTimer <= 5) {
 
-                if (me.getX() < closestBot.getX()) {//moving left or right to match enemy robot's X coordinates
-                    moveTimer++;
+                if (me.getX() < closestBot.getX()) {//moving left or right depending on the enemy robot's X coordinates
+                    /*if(botHelper.manhattanDist(me.getX(),me.getY(), closestDeadBot.getX(),closestDeadBot.getY()) <50 && closestDeadBot.getX() > me.getX()) {//checks if a dead bot is to the right of the bot
+                        if (me.getY() - closestDeadBot.getY() > Bot.RADIUS && me.getY() - closestDeadBot.getY() > Bot.RADIUS*-1) {//checks if the dead bot is actually in the way
+                            if (me.getY() < BattleBotArena.BOTTOM_EDGE / 2) {//checks if the bot is in the upper half of the arena
+                                return BattleBotArena.DOWN;//the bot moves down if a dead bot is next to it and the bot is in the top half of the arena
+                            }
+                            else{
+                                return BattleBotArena.UP;//bot moves up if a dead bot is next to it and the bot is in the bottom half of the screen
+                            }
+                        }
+                    }*/
                     if(debug){System.out.println("movingRight "+moveTimer);}
                     return BattleBotArena.RIGHT;
                 } else {
-                    moveTimer++;
+                    //if(botHelper.manhattanDist(me.getX(),me.getY(), closestDeadBot.getX(),closestDeadBot.getY()) <50) {
+                        //return BattleBotArena.UP;
+
                     if(debug){System.out.println("movingLeft "+moveTimer);}
                     return BattleBotArena.LEFT;
+                    }
                 }
-            }
+
 
             if (moveTimer > 5) {
+                    /*if(botHelper.manhattanDist(me.getX(),me.getY(), closestDeadBot.getX(),closestDeadBot.getY()) <50 && closestDeadBot.getX() > me.getX()) {//checks if a dead bot is to the right of the bot
+                        if (me.getX() - closestDeadBot.getX() > Bot.RADIUS && me.getX() - closestDeadBot.getX() > Bot.RADIUS*-1) {//checks of the dead bot is actually in the way
+                            if (me.getX() < BattleBotArena.RIGHT_EDGE / 2) {//checks if the bot is the left part of the arena
+                                return BattleBotArena.RIGHT;//moves right if there is a dead bot in the way
+                            }
+                            else{
+                                return BattleBotArena.LEFT;//moves left if there is a dead bot in the way
+                            }
+                        }
+                    }*/
                 if (me.getY() < closestBot.getY()) {//moving up or down to match the enemy robot's Y coordinates
-                    moveTimer++;
                     if(debug){System.out.println("movingDown "+moveTimer);}
                     return BattleBotArena.DOWN;
                 } else {
-                    moveTimer++;
                     if(debug){System.out.println("movingUp "+moveTimer);}
                     return BattleBotArena.UP;
                 }
@@ -216,7 +268,7 @@ public class QirongBot extends Bot {
      */
     @Override
     public String getName() {
-        return null;
+        return "QirongBot";
     }
 
     /**
