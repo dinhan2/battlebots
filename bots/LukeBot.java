@@ -10,8 +10,10 @@ import java.awt.*;
  * The strategy of LukeBot is to play both defensively and offensively.
  * If it detects a bullet within 60 Manhattan distance, it will turn on its defensive mode
  * by moving in the opposite direction of the bullet to avoid it. When LukeBot is safe,
- * it will go on the offensive side by firing when it is lined up with another bot.
- * Furthermore, it will attempt to move to the closest live bot when it is safe to do so.
+ * it will go on the offensive side by moving vertically to the closest bot and firing when it is
+ * lined up with that bot. What makes LukeBot truely intelligent is that it is able to
+ * distinguish other intelligent bots and random bots. If LukeBot is facing another intelligent bot,
+ * it will play more defensively by not approaching it too closely before firing.
  * By combining both the offensive and defensive power, LukeBot will be unbeatable.
  *
  * @author Luke Liu
@@ -21,7 +23,8 @@ public class LukeBot extends Bot {
 
     //Initiate a bot helper
     private BotHelper botHelper = new BotHelper();
-    private double DANGERZONE = 60; //The distance that the bot will avoid the bullet
+    private int DANGERZONE = 60; //The distance at which that LukeBot will avoid the bullet
+    private int SAFETYRANGE; //The distance that must be kept between LukeBot and other intelligent bots
 
     /**
      * This method is called at the beginning of each round. Use it to perform
@@ -100,8 +103,16 @@ public class LukeBot extends Bot {
             // If LukeBot lines up with another bot, LukeBot fires.
             //************************************************************************************************
 
+            //When facing other intelligent bots, LukeBot takes a more defensive method by not approaching them too closely before firing.
+            //When facing random bots, LukeBot takes a more offensive method by approaching their edge and securing the kill.
+            if (closestBot.getName().substring(0, 4).equals("Rand")) {
+                SAFETYRANGE = 0;
+            } else {
+                SAFETYRANGE = 4;
+            }
+
             //If LukeBot lines up vertically with another bot
-            if (me.getX() < closestBot.getX() + Bot.RADIUS && me.getX() > closestBot.getX() - Bot.RADIUS) {
+            if (me.getX() < closestBot.getX() + SAFETYRANGE + Bot.RADIUS && me.getX() > closestBot.getX() - SAFETYRANGE - Bot.RADIUS) {
                 //If LukeBot is below another bot, fire upwards, and vice versa
                 if (me.getY() > closestBot.getY()) {
                     return BattleBotArena.FIREUP;
@@ -109,7 +120,7 @@ public class LukeBot extends Bot {
                     return BattleBotArena.FIREDOWN;
                 }
             //If LukeBot lines up horizontally with another bot
-            } else if (me.getY() < closestBot.getY() + Bot.RADIUS && me.getY() > closestBot.getY() - Bot.RADIUS) {
+            } else if (me.getY() < closestBot.getY() + SAFETYRANGE + Bot.RADIUS && me.getY() > closestBot.getY() - SAFETYRANGE - Bot.RADIUS) {
                 //If LukeBot is to the right of another bot, fire left, and vice versa
                 if (me.getX() > closestBot.getX()) {
                     return BattleBotArena.FIRELEFT;
@@ -119,21 +130,15 @@ public class LukeBot extends Bot {
             }
 
             //************************************************************************************************
-            // If Lukebot does not dodge or fire, it will attempt to move to the nearest bot unless
-            // a bullet is in its way. For simplicity purposes, it will only move vertically.
+            // If Lukebot does not dodge or fire, it will attempt to move to the nearest bot.
+            // For simplicity purposes, it will only move vertically.
             //************************************************************************************************
 
-            //If LukeBot is above the closest bot, move down unless there is a bullet moving horizontally below it
+            //If LukeBot is above the closest bot, move down
             if (me.getY() < closestBot.getY()) {
-                if (closestBullet.getY() > me.getY() && closestBullet.getXSpeed() != 0) {
-                    return BattleBotArena.STAY;
-                }
                 return BattleBotArena.DOWN;
-            //If LukeBot is below the closest bot, move up unless there is a bullet moving horizontally above it
+            //If LukeBot is below the closest bot, move up
             } else if (me.getY() > closestBot.getY()) {
-                if (closestBullet.getY() < me.getY() && closestBullet.getXSpeed() != 0) {
-                    return BattleBotArena.STAY;
-                }
                 return BattleBotArena.UP;
             }
         }
