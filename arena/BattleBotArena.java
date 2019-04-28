@@ -598,7 +598,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 		bots[0] = new HumanBot();
 		addKeyListener((HumanBot)bots[0]);
 		// ******************************
-
+		bots[0] = new SamBot();
 		// *** INSERT PLAYER BOTS HERE. Use any array numbers you like
 		// *** as the bots will be shuffled again later.
 		// *** Any empty spots will be filled with standard arena bots.
