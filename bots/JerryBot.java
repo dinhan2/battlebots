@@ -5,9 +5,19 @@ import arena.BotInfo;
 import arena.Bullet;
 
 import java.awt.*;
+import java.nio.channels.ClosedSelectorException;
 
 public  class JerryBot extends Bot {
 
+
+    /**
+     * The strategy for my bot was planned out to be a vulture-like strategy, where it would avoid combat
+     * until half players remain, then it would become aggressive and track down the nearest bot to hunt them down.
+     * However, because of time and some problems i've encountered during the process, i changed my bots strategy to be much simpler.
+     * It adopts a hermit strategy, it does not move but deems the space around it to be its "territory", if any bots get close, it will
+     * unleash a flurry of shots. Admittedly, I believe this could be very more well-refined. I got a bit frustrated after spending countless
+     * hours on this and not being able to achieve my desired product.
+     */
 
     /**
      * Constructor for BotHelper class.
@@ -15,10 +25,27 @@ public  class JerryBot extends Bot {
     BotHelper botAssist = new BotHelper();
 
 
-    private   double BotTooClose = 100;
+    /**
+     * Double that stores the value that is considered a danger zone for other bots coming too close.
+     */
+    private int botDangerZone = 150;
 
 
+    /**
+     * Double tha stores the value that is considered a danger zone for incoming bullets.
+     */
+    private int bulletDangerZone = 50;
+
+
+    /**
+     * Stores the movement the bot took
+     */
     private int move;
+
+
+
+
+
 
     /**
      * name for my bot. called by getName method
@@ -45,6 +72,8 @@ public  class JerryBot extends Bot {
     public void newRound() {
 
     }
+
+
 
     /**
      * This method is called at every time step to find out what you want your
@@ -77,59 +106,124 @@ public  class JerryBot extends Bot {
      * @param bullets  An array of all Bullet objects currently in play
      * @return A legal move (use the constants defined in BattleBotArena)
      */
+
+
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
 
 
+        BotInfo closestBot = botAssist.findClosest(me, liveBots);
+        Bullet closestBullet = botAssist.findClosest(me, bullets);
+
+    // makes sure theres bots that are alive or bullets before working
+        if (liveBots.length > 0 && bullets.length > 0) {
 
 
-         BotInfo closestBot =  botAssist.findClosest(me, liveBots);
-         Bullet closestBullet = botAssist.findClosest(me, bullets);
-         int AliveBots = liveBots.length;
-         int numOfBots = BattleBotArena.NUM_BOTS;
+            /**
+             * Bullet avoidance code
+             */
+            // Checks if a bullet is getting near the bot
+            if (botAssist.calcDistance(me.getX(), me.getY(), closestBullet.getX(), closestBullet.getY()) < bulletDangerZone) {
+                //Ensures its a bullet coming horizontally
+                if (closestBullet.getXSpeed() != 0 && closestBullet.getYSpeed() == 0) {
+                    //Moves up if the bullet is below the bot
+                    if (me.getY() + Bot.RADIUS < closestBullet.getY()) {
+                        return BattleBotArena.UP;
+                    }
+                    // if a bullet is on the exact same Y axis as the bot, this statement will trigger.
+                    // mainly for error-trapping as it's possible for my bot to be stuck at the top or bottom then do nothing
+                    //when an incoming shot comes.
+                    if (me.getY() + Bot.RADIUS == closestBullet.getY()) {
+                        //if at bottom of the screen and a bullet is coming, move up, otherwise stay
+                        if (me.getY() >= BattleBotArena.BOTTOM_EDGE - 30) {
+                            move = BattleBotArena.UP;
+                            return move;
+                        }
+                        //if at top of the screen and a bullet is coming, move up, otherwise stay
+                        if (me.getY() <= BattleBotArena.TOP_EDGE + 5) {
+                            move = BattleBotArena.DOWN;
+                            return move;
+                        }
+                        //there are rare cases from testing that if a bullet is exactly on the same axis as the bot, it will
+                        // do nothing. this return statement will auto-dodge upwards no matter what if that phenomenon occurs.
+                        move = BattleBotArena.UP;
+                        return move;
 
+                    }
+                    //since the bullet incoming isn't below the bot, the bot will dodge downwards, as it must be above us.
+                    else {
+                        return BattleBotArena.DOWN;
+                    }
+                }
+                //Ensures incoming bullet is coming vertically
+                if (closestBullet.getYSpeed() != 0 && closestBullet.getXSpeed() == 0) {
+                    // moves left if incoming bullet is to the right of the bot
+                    if (me.getX() + Bot.RADIUS < closestBullet.getX()) {
+                        move = BattleBotArena.LEFT;
+                        return move;
+                    }
 
+                    // if bots position is stuck at the right screen when a bullet is coming, move to the left
+                    if (me.getX() + Bot.RADIUS == closestBullet.getX()) {
+                        if (me.getX() >= BattleBotArena.RIGHT_EDGE - 30) {
+                            move = BattleBotArena.LEFT;
+                            return move;
 
-             if (BotHelper.manhattanDist(me.getX(),me.getY(),closestBot.getX(),closestBot.getY()) < BotTooClose) {
-          //       System.out.println("Closest bot is" + closestBot);
-           //     System.out.println("there is  " + AliveBots + "left, continuing passive mode");
-           //  return BattleBotArena.RIGHT;
-             }
+                        }
+                        // if bots position is stuck to the left screen whena  bullet is coming, move to the right
+                        if (me.getX() <= BattleBotArena.LEFT_EDGE + 5) {
+                            move = BattleBotArena.RIGHT;
+                            return move;
+                        }
+                        //bot auto-dodges left if a bullet is on the exact same X axis without being in a corner, this prevents a problem of the bot
+                        //standing still if this were to happen.
+                        move = BattleBotArena.LEFT;
+                        return move;
 
-        /**
-         * X-axis bullet avoidance statement. If a bullet gets near the position of the bot, it moves down to avoid it.
-         */
-        if (botAssist.calcDisplacement(me.getX(),closestBullet.getX()) < 5){
-            move = BattleBotArena.UP;
+                    } else { // if incoming bullet is not to  the right of the bot, will move left
+                        move = BattleBotArena.RIGHT;
+                        return move;
+                    }
 
-        } else if (closestBullet.getX() - me.getX() > 5){
-            move  = BattleBotArena.DOWN;
+                }
+                return BattleBotArena.STAY;
+            }
+
+            /**
+             * Territorial/Combat code
+             */
+            int ShotRange = 20;
+            // if the closeset bot is entering the danger zone, get ready to shoot
+            if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) <= botDangerZone) {
+
+            //if  the closest bot is above me, shoot upwards
+                if (shotOK && me.getY() > closestBot.getY()) {
+                    return BattleBotArena.FIREUP;
+                }
+                // if the closest bot is below me and within shot range, shoot downwards
+                // this code uses manhattan difference because of some weird problems i encountered -- the bot would only
+                // shoot downwards no matter where the closest bot is. this line of code and the requirement of shot range
+                // is a messy fix for it but it works.
+                else if (shotOK && BotHelper.manhattanDist(me.getX(), 0, closestBot.getX(), 0) < ShotRange) {
+                    return BattleBotArena.FIREDOWN;
+                }
+
+                //if the closest bot is to the left of us, shoot to the left
+                if (shotOK && me.getX() > closestBot.getX()) {
+                    return BattleBotArena.FIRELEFT;
+                }
+                // if the closest bot is to the right of us, shoot to the right
+                else if (shotOK && me.getX() < closestBot.getX()) {
+                    return BattleBotArena.FIRERIGHT;
+                }
+
+            }
         }
-
-         if (closestBullet.getY() - me.getY() == 5){
-            move = BattleBotArena.LEFT;
-            System.out.print(closestBullet);
-        } else if (closestBullet.getY() - me.getY() < 5 ) {
-             move = BattleBotArena.RIGHT;
-         } else {
-             move = BattleBotArena.STAY;
-         }
-
-
-        /**
-         * Stops the bot from avoiding combat and bullets and switchs into killer mode.
-         * The bots goal is to play passively and avoid death until there is less than half players remaining,
-         * after which it wll then play aggressive.
-         */
-        if (AliveBots < BattleBotArena.NUM_BOTS/2) { // uses BattleBotArena.NUM_BOTs variable for consistent results.
-            System.out.println("Aggressive mode");
-        }
-
+        // when nothing is happening the bot stays still
+        move = BattleBotArena.STAY;
         return move;
-
-
-
     }
+
 
     /**
      * Called when it is time to draw the Bot. Your Bot should be (mostly)
@@ -145,7 +239,7 @@ public  class JerryBot extends Bot {
     @Override
     public void draw(Graphics g, int x, int y) {
         g.setColor(Color.CYAN);
-        g.fillRect(x+2, y+2, RADIUS*2-4, RADIUS*2-4);
+        g.fillOval(x+2, y+2, RADIUS*2, RADIUS*2);
     }
 
     /**
@@ -233,4 +327,5 @@ public  class JerryBot extends Bot {
     public void loadedImages(Image[] images) {
 
     }
+
 }
