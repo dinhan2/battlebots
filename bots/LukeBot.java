@@ -6,11 +6,22 @@ import arena.Bullet;
 
 import java.awt.*;
 
+/**
+ * The strategy of LukeBot is to play both defensively and offensively.
+ * If it detects a bullet within 60 Manhattan distance, it will turn on its defensive mode
+ * by moving in the opposite direction of the bullet to avoid it. When LukeBot is safe,
+ * it will go on the offensive side by firing when it is lined up with another bot.
+ * Furthermore, it will attempt to move to the closest live bot when it is safe to do so.
+ * By combining both the offensive and defensive power, LukeBot will be unbeatable.
+ *
+ * @author Luke Liu
+ * @version April 28, 2019
+ */
 public class LukeBot extends Bot {
 
-    BotHelper botHelper = new BotHelper();
-
-    double DANGERZONE = 150;
+    //Initiate a bot helper
+    private BotHelper botHelper = new BotHelper();
+    private double DANGERZONE = 60; //The distance that the bot will avoid the bullet
 
     /**
      * This method is called at the beginning of each round. Use it to perform
@@ -18,7 +29,6 @@ public class LukeBot extends Bot {
      */
     @Override
     public void newRound() {
-
     }
 
     /**
@@ -54,21 +64,53 @@ public class LukeBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
+        //Make sure there must be one live bot and one bullet (otherwise an exception would be thrown when finding the closest bot/bullet)
+        if (liveBots.length > 0 && bullets.length > 0) {
 
+            //Find the closest bot and the closest bullet
+            BotInfo closestBot = botHelper.findClosest(me, liveBots);
+            Bullet closestBullet = botHelper.findClosest(me, bullets);
 
-        BotInfo closestBot = botHelper.findClosest(me, liveBots);
+            //************************************************************************************************
+            // If a bullet is detected within the danger zone, LukeBot dodges.
+            // This is placed first in the method because dodging takes a higher priority than firing.
+            //************************************************************************************************
 
-        //Code for firing
-        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) < 150) {
-            if (me.getX() < closestBot.getX() + 20 && me.getX() > closestBot.getX() - 20) {
+            if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBullet.getX(), closestBullet.getY()) < DANGERZONE) {
+                if (closestBullet.getXSpeed() != 0) { //If the bullet is moving horizontally
+                    //Move up if LukeBot is above the bullet, vice versa
+                    //Make sure that LukeBot is not trapped on the edge
+                    if (me.getY() - Bot.RADIUS < closestBullet.getY() && me.getY() > 50 || me.getY() > 400) {
+                        return BattleBotArena.UP;
+                    } else {
+                        return BattleBotArena.DOWN;
+                    }
+                } else if (closestBullet.getYSpeed() != 0) { //If the bullet is moving vertically
+                    //Move right if LukeBot is to the right of the bullet, vice versa
+                    //Make sure that LukeBot is not trapped on the edge
+                    if (me.getX() + Bot.RADIUS > closestBullet.getX() && me.getX() < 600 || me.getX() < 50) {
+                        return BattleBotArena.RIGHT;
+                    } else {
+                        return BattleBotArena.LEFT;
+                    }
+                }
+            }
+
+            //************************************************************************************************
+            // If LukeBot lines up with another bot, LukeBot fires.
+            //************************************************************************************************
+
+            //If LukeBot lines up vertically with another bot
+            if (me.getX() < closestBot.getX() + Bot.RADIUS && me.getX() > closestBot.getX() - Bot.RADIUS) {
+                //If LukeBot is below another bot, fire upwards, and vice versa
                 if (me.getY() > closestBot.getY()) {
                     return BattleBotArena.FIREUP;
                 } else if (me.getY() < closestBot.getY()) {
                     return BattleBotArena.FIREDOWN;
                 }
-            }
-
-            if (me.getY() < closestBot.getY() + 20 && me.getY() > closestBot.getY() - 20) {
+            //If LukeBot lines up horizontally with another bot
+            } else if (me.getY() < closestBot.getY() + Bot.RADIUS && me.getY() > closestBot.getY() - Bot.RADIUS) {
+                //If LukeBot is to the right of another bot, fire left, and vice versa
                 if (me.getX() > closestBot.getX()) {
                     return BattleBotArena.FIRELEFT;
                 } else if (me.getX() < closestBot.getX()) {
@@ -76,49 +118,27 @@ public class LukeBot extends Bot {
                 }
             }
 
-        }
+            //************************************************************************************************
+            // If Lukebot does not dodge or fire, it will attempt to move to the nearest bot unless
+            // a bullet is in its way. For simplicity purposes, it will only move vertically.
+            //************************************************************************************************
 
-        Bullet closestBullet = botHelper.findClosest(me, bullets);
-
-        //Code for bullet dodge
-        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBullet.getX(), closestBullet.getY()) < DANGERZONE) {
-            if (closestBullet.getXSpeed() != 0 && closestBullet.getYSpeed() == 0) {
-                if (me.getY() < closestBullet.getY()) {
-                    return BattleBotArena.UP;
-                } else {
-                    return BattleBotArena.DOWN;
+            //If LukeBot is above the closest bot, move down unless there is a bullet moving horizontally below it
+            if (me.getY() < closestBot.getY()) {
+                if (closestBullet.getY() > me.getY() && closestBullet.getXSpeed() != 0) {
+                    return BattleBotArena.STAY;
                 }
-            }
-
-            if (closestBullet.getYSpeed() != 0 && closestBullet.getXSpeed() == 0) {
-                if (me.getX() > closestBullet.getX()) {
-                    return BattleBotArena.RIGHT;
-                } else {
-                    return BattleBotArena.LEFT;
+                return BattleBotArena.DOWN;
+            //If LukeBot is below the closest bot, move up unless there is a bullet moving horizontally above it
+            } else if (me.getY() > closestBot.getY()) {
+                if (closestBullet.getY() < me.getY() && closestBullet.getXSpeed() != 0) {
+                    return BattleBotArena.STAY;
                 }
+                return BattleBotArena.UP;
             }
         }
 
-        /*
-
-        if (BotHelper.manhattanDist(me.getX(), me.getY(), closestBot.getX(), closestBot.getY()) < DANGERZONE) {
-            if (Math.abs(me.getX() - closestBot.getX()) > Math.abs(me.getY() - closestBot.getY())) {
-                if (me.getY() > closestBot.getY()) {
-                    return BattleBotArena.DOWN;
-                } else {
-                    return BattleBotArena.UP;
-                }
-            } else {
-                if (me.getX() > closestBot.getX()) {
-                    return BattleBotArena.RIGHT;
-                } else {
-                    return BattleBotArena.LEFT;
-                }
-            }
-        }
-
-         */
-
+        //If there are no bullets or live bots, stay in the current position.
         return BattleBotArena.STAY;
     }
 
@@ -136,7 +156,7 @@ public class LukeBot extends Bot {
     @Override
     public void draw(Graphics g, int x, int y) {
         g.setColor(Color.red);
-        g.fillRect(x+2, y+2, RADIUS*2-4, RADIUS*2-4);
+        g.fillOval(x, y, RADIUS * 2, RADIUS * 2);
     }
 
     /**
@@ -147,7 +167,7 @@ public class LukeBot extends Bot {
      */
     @Override
     public String getName() {
-        return null;
+        return "LukeBot";
     }
 
     /**
@@ -161,7 +181,7 @@ public class LukeBot extends Bot {
      */
     @Override
     public String getTeamName() {
-        return null;
+        return "2366";
     }
 
     /**
@@ -186,7 +206,6 @@ public class LukeBot extends Bot {
      */
     @Override
     public void incomingMessage(int botNum, String msg) {
-
     }
 
     /**
@@ -222,6 +241,5 @@ public class LukeBot extends Bot {
      */
     @Override
     public void loadedImages(Image[] images) {
-
     }
 }
