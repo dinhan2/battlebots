@@ -293,7 +293,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 	 * Total number of Bots in round 1 (if you have fewer than this, the rest of the spots
 	 * in the array will be filled with Drones, RandBots, and Sentries).
 	 */
-	public static final int 	NUM_BOTS =16;//BROOKS NOV 12 2017 Changed to 16
+	public static final int 	NUM_BOTS =18;//BROOKS NOV 12 2017 Changed to 16
 	/**
 	 * Number of bullets on screen at once for each bot
 	 */
@@ -598,7 +598,27 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 		bots[0] = new HumanBot();
 		addKeyListener((HumanBot)bots[0]);
 		// ******************************
-		bots[0] = new SamBot();
+		bots[0] = new AlexBot();
+		bots[1] = new BotRahim();
+		bots[2] = new GornikBot();
+		bots[3] = new KylerBot();
+		bots[4] = new LukeBot();
+		bots[5] = new SamBot();
+
+
+		bots[6] = new AlexBot();
+		bots[7] = new BotRahim();
+		bots[8] = new GornikBot();
+		bots[9] = new KylerBot();
+		bots[10] = new LukeBot();
+		bots[11] = new SamBot();
+
+		bots[12] = new AlexBot();
+		bots[13] = new BotRahim();
+		bots[14] = new GornikBot();
+		bots[15] = new KylerBot();
+		bots[16] = new LukeBot();
+		bots[17] = new SamBot();
 		// *** INSERT PLAYER BOTS HERE. Use any array numbers you like
 		// *** as the bots will be shuffled again later.
 		// *** Any empty spots will be filled with standard arena bots.
@@ -1582,8 +1602,8 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 						title = botsInfo[i].getName();
 					else if (showScores)
 						title = ""+df.format(botsInfo[i].getCumulativeScore());//Rowbottom
-					else if (showTeams)//Rowbottom changed teams to show ammo
-						//title = botsInfo[i].getAmmo();
+					else if (showTeams)
+						title = botsInfo[i].getTeamName();
 
 					// x calculation based on x-width of 0.5 font size with a one pixel spacer between letters
 					g.drawString(title, (int)(botsInfo[i].getX()+Bot.RADIUS-(title.length()/2.0*(NAME_FONT*0.5+1))+0.5), (int)(botsInfo[i].getY()-1+0.5));
