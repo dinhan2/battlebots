@@ -1,11 +1,42 @@
 package bots;
 
+import arena.BattleBotArena;
 import arena.BotInfo;
 import arena.Bullet;
 
 import java.awt.*;
 
-public class JerryBot extends Bot {
+public  class JerryBot extends Bot {
+
+
+    /**
+     * Constructor for BotHelper class.
+     */
+    BotHelper botAssist = new BotHelper();
+
+
+    private   double BotTooClose = 100;
+
+
+    private int move;
+
+    /**
+     * name for my bot. called by getName method
+     */
+    String botName = "Mavus";
+
+
+    /**
+     * This method is called at the start to obtain the number of all living bots currently.
+     * @param liveBots - bots that are alive and not dead.
+     * @return How many bots are alive at the start of the game.
+     */
+    public  int newRound(BotInfo[] liveBots) {
+
+
+        return liveBots.length;
+    }
+
     /**
      * This method is called at the beginning of each round. Use it to perform
      * any initialization that you require when starting a new round.
@@ -48,7 +79,56 @@ public class JerryBot extends Bot {
      */
     @Override
     public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
-        return 0;
+
+
+
+
+         BotInfo closestBot =  botAssist.findClosest(me, liveBots);
+         Bullet closestBullet = botAssist.findClosest(me, bullets);
+         int AliveBots = liveBots.length;
+         int numOfBots = BattleBotArena.NUM_BOTS;
+
+
+
+             if (BotHelper.manhattanDist(me.getX(),me.getY(),closestBot.getX(),closestBot.getY()) < BotTooClose) {
+          //       System.out.println("Closest bot is" + closestBot);
+           //     System.out.println("there is  " + AliveBots + "left, continuing passive mode");
+           //  return BattleBotArena.RIGHT;
+             }
+
+        /**
+         * X-axis bullet avoidance statement. If a bullet gets near the position of the bot, it moves down to avoid it.
+         */
+        if (botAssist.calcDisplacement(me.getX(),closestBullet.getX()) < 5){
+            move = BattleBotArena.UP;
+
+        } else if (closestBullet.getX() - me.getX() > 5){
+            move  = BattleBotArena.DOWN;
+        }
+
+         if (closestBullet.getY() - me.getY() == 5){
+            move = BattleBotArena.LEFT;
+            System.out.print(closestBullet);
+        } else if (closestBullet.getY() - me.getY() < 5 ) {
+             move = BattleBotArena.RIGHT;
+         } else {
+             move = BattleBotArena.STAY;
+         }
+
+
+        /**
+         * Stops the bot from avoiding combat and bullets and switchs into killer mode.
+         * The bots goal is to play passively and avoid death until there is less than half players remaining,
+         * after which it wll then play aggressive.
+         */
+        if (AliveBots < BattleBotArena.NUM_BOTS/2) { // uses BattleBotArena.NUM_BOTs variable for consistent results.
+            System.out.println("Aggressive mode");
+        }
+
+        return move;
+
+
+
     }
 
     /**
@@ -60,11 +140,12 @@ public class JerryBot extends Bot {
      *
      * @param g The Graphics object to draw yourself on.
      * @param x The x location of the top left corner of the drawing area
-     * @param y The y location of the top left corner of the drawing area
+     * @param y The y location of the top left corner of th e drawing area
      */
     @Override
     public void draw(Graphics g, int x, int y) {
-
+        g.setColor(Color.CYAN);
+        g.fillRect(x+2, y+2, RADIUS*2-4, RADIUS*2-4);
     }
 
     /**
@@ -75,7 +156,7 @@ public class JerryBot extends Bot {
      */
     @Override
     public String getName() {
-        return null;
+        return botName;
     }
 
     /**
